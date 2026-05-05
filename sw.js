@@ -1,9 +1,7 @@
-const CACHE_NAME = 'diag-secu-v1';
+const CACHE_NAME = 'diag-secu-v2';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css',
-  './app.js',
   './manifest.json'
 ];
 

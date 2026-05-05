@@ -1,923 +1,936 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="DiagSécu">
-  <title>Diagnostic Sécurité EPS</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="theme-color" content="#1a1a2e">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="styles.css?v=3">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnostic Sécurité - Fiche A4</title>
+<style>
+  :root {
+    --bandeau: #14365c;        /* bleu marine pour remplacer les bandes noires */
+    --bandeau-light: #2d5a8c;
+    --trait: #000;
+    --champ: #1a1a1a;
+    --bg-page: #e8ecf2;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg-page);
+    color: #000;
+  }
+
+  /* Barre d'outils (cachée à l'impression) */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bandeau);
+    color: #fff;
+    padding: 10px 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .toolbar h2 { margin: 0; font-size: 16px; flex: 1; }
+  .toolbar button {
+    background: #fff;
+    color: var(--bandeau);
+    border: none;
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .toolbar button:hover { background: #ffe7d4; }
+  .toolbar button.danger { background: #ffd5d5; color: #8a1a1a; }
+
+  /* Page A4 */
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 7mm 7mm;
+    margin: 12px auto;
+    background: #fff;
+    box-shadow: 0 0 8px rgba(0,0,0,0.15);
+    font-size: 9.5pt;
+    line-height: 1.3;
+    position: relative;
+  }
+
+  /* En-tête */
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border: 1.5px solid #000;
+    padding: 4px 8px;
+    margin-bottom: 6px;
+  }
+  .header-top h1 {
+    font-size: 16pt;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 0.5px;
+  }
+  .lieu-protege {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9pt;
+  }
+  .case-chiffre {
+    width: 18px;
+    height: 22px;
+    border: 1px solid #000;
+    text-align: center;
+    font-size: 13pt;
+    padding: 0;
+    background: transparent;
+    font-family: 'Caveat', 'Courier New', monospace;
+    color: #0a2858;
+  }
+  .cases-row { display: inline-flex; gap: 1px; }
+
+  /* Bandeau de section (était noir) */
+  .bandeau {
+    background: var(--bandeau);
+    color: #fff;
+    font-weight: 700;
+    padding: 3px 8px;
+    margin: 6px 0 3px;
+    font-size: 10pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Lignes "label : input ........" */
+  .ligne {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin: 4px 0;
+    flex-wrap: wrap;
+    min-height: 22px;
+  }
+  .ligne label { white-space: nowrap; }
+  .champ {
+    border: none;
+    border-bottom: 1px dotted #555;
+    background: transparent;
+    font-family: 'Caveat', 'Comic Sans MS', cursive;
+    font-size: 14pt;
+    color: #0a2858;
+    padding: 0 3px;
+    flex: 1;
+    min-width: 60px;
+    outline: none;
+    line-height: 1.4;
+  }
+  .champ:focus { border-bottom-color: var(--bandeau); background: #fff8ee; }
+  .champ-court { flex: 0 1 auto; min-width: 80px; max-width: 220px; }
+  .champ-mini { flex: 0 0 auto; width: 60px; }
+
+  /* Cases à cocher carrées */
+  .case {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-right: 8px;
+    cursor: pointer;
+  }
+  .case input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 11px;
+    height: 11px;
+    border: 1.2px solid #000;
+    background: #fff;
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  .case input[type="checkbox"]:checked {
+    background: #fff;
+  }
+  .case input[type="checkbox"]:checked::after {
+    content: "✗";
+    position: absolute;
+    top: -5px;
+    left: 0px;
+    font-size: 14pt;
+    font-weight: bold;
+    color: #0a2858;
+    line-height: 1;
+  }
+
+  /* Sections cadrées */
+  .bloc {
+    border: 1px solid #000;
+    padding: 4px 8px;
+    margin-bottom: 4px;
+  }
+
+  /* Tableau intrusion */
+  table.tab {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    table-layout: fixed;
+  }
+  table.tab th, table.tab td {
+    border: 1px solid #000;
+    padding: 2px 2px;
+    text-align: center;
+    vertical-align: middle;
+    overflow: visible;
+  }
+  table.tab th {
+    background: #f0f0f0;
+    font-weight: 600;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  table.tab th.bandeau-th {
+    background: var(--bandeau);
+    color: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  table.tab .vert {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: normal;
+    height: 110px;
+    font-size: 8pt;
+    line-height: 1.15;
+    padding: 6px 1px;
+    width: 5.3%;
+  }
+  table.tab td.piece {
+    text-align: left;
+    padding-left: 4px;
+    height: 28px;
+  }
+  table.tab td.cellule {
+    height: 28px;
+    min-width: 22px;
+  }
+  table.tab input.cell {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-family: 'Caveat', 'Comic Sans MS', cursive;
+    font-size: 13pt;
+    color: #0a2858;
+    padding: 0;
+    outline: none;
+  }
+  table.tab input.cell:focus { background: #fff8ee; }
+  table.tab td.piece input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'Caveat', 'Comic Sans MS', cursive;
+    font-size: 13pt;
+    color: #0a2858;
+    outline: none;
+    padding: 0 2px;
+  }
+  table.tab td.piece input:focus { background: #fff8ee; }
+
+  /* Bloc télécommande */
+  .telecommande {
+    display: flex;
+    align-items: center;
+    border: 1px solid #000;
+    margin-top: -1px;
+    font-size: 8.5pt;
+  }
+  .telecommande .lab {
+    background: var(--bandeau);
+    color: #fff;
+    padding: 4px 8px;
+    font-weight: 700;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .telecommande .seg {
+    padding: 4px 8px;
+    border-right: 1px solid #000;
+    flex: 1;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .telecommande .seg:last-child { border-right: none; }
+
+  .legende {
+    font-size: 7pt;
+    font-style: italic;
+    margin-top: 3px;
+  }
+
+  /* Pieds de page */
+  .footer-page {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 8px;
+    font-size: 8.5pt;
+  }
+  .paraphe-box {
+    border: 1px dotted #888;
+    width: 110px;
+    height: 35px;
+    margin-top: 2px;
+  }
+
+  /* Tableau extensions */
+  table.ext {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+  }
+  table.ext th, table.ext td {
+    border: 1px solid #000;
+    padding: 4px;
+    text-align: center;
+    vertical-align: middle;
+    height: 26px;
+  }
+  table.ext th { background: #f0f0f0; font-weight: 600; }
+  table.ext th.bandeau-th { background: var(--bandeau); color: #fff;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table.ext td.lab { text-align: left; padding-left: 6px; }
+  table.ext input.cell {
+    width: 100%; border: none; background: transparent;
+    text-align: center; font-family: 'Caveat', 'Comic Sans MS', cursive;
+    font-size: 14pt; color: #0a2858; padding: 0; outline: none;
+  }
+  table.ext input.cell:focus { background: #fff8ee; }
+  table.ext input.lab-input {
+    width: 100%; border: none; background: transparent;
+    font-family: 'Caveat', 'Comic Sans MS', cursive;
+    font-size: 12pt; color: #0a2858; outline: none;
+  }
+
+  /* Service vidéo */
+  .service-video {
+    display: flex;
+    border: 1px solid #000;
+    align-items: center;
+    margin: 4px 0;
+  }
+  .service-video .lab {
+    background: var(--bandeau);
+    color: #fff;
+    padding: 6px 10px;
+    font-weight: 700;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .service-video .corps { padding: 6px 10px; flex: 1; display: flex; gap: 12px; align-items: center; }
+
+  /* Paramétrages */
+  .params .item { margin: 4px 0 4px 12px; }
+  .params .sub { margin-left: 20px; }
+
+  textarea.zone {
+    width: 100%;
+    border: 1px dotted #888;
+    background: transparent;
+    font-family: 'Caveat', 'Comic Sans MS', cursive;
+    font-size: 14pt;
+    line-height: 1.45;
+    color: #0a2858;
+    padding: 6px 8px;
+    outline: none;
+    resize: vertical;
+    min-height: 50px;
+  }
+  textarea.zone:focus { background: #fff8ee; border-color: var(--bandeau); }
+
+  /* Signature */
+  .sig-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 8px;
+    font-size: 9pt;
+  }
+  .sig-box {
+    flex: 1;
+    border: 1px dotted #888;
+    min-height: 60px;
+    padding: 4px 6px;
+  }
+
+  /* Charge la police manuscrite */
+  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap');
+
+  /* Impression */
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none !important; }
+    .page {
+      margin: 0;
+      box-shadow: none;
+      page-break-after: always;
+      width: 210mm;
+      min-height: 297mm;
+    }
+    .page:last-child { page-break-after: auto; }
+    .champ, table.tab input.cell, table.tab td.piece input,
+    table.ext input.cell, table.ext input.lab-input, textarea.zone {
+      color: #0a2858 !important;
+    }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  }
+
+  @page { size: A4; margin: 0; }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- ═══════════ TOOLBAR ═══════════ -->
-<div class="toolbar">
-  <div class="toolbar-inner">
-    <h1>Diagnostic Sécurité</h1>
-    <select id="form-select" title="Formulaires sauvegardés"></select>
-    <button onclick="newForm()">＋ Nouveau</button>
-    <div class="sep"></div>
-    <button onclick="saveForm()" class="primary">💾 Sauvegarder</button>
-    <button onclick="loadForm()">📂 Charger</button>
-    <button onclick="deleteForm()">🗑️ Suppr.</button>
-    <div class="sep"></div>
-    <button onclick="exportJSON()">⬇ Export</button>
-    <button onclick="importJSON()">⬆ Import</button>
-    <div class="sep"></div>
-    <button onclick="printForm()">🖨️ Imprimer</button>
-    <span class="saved-badge" id="saved-badge">✓ Sauvegardé</span>
-  </div>
+<div class="toolbar no-print">
+  <h2>Fiche Diagnostic Sécurité — A4 (2 pages)</h2>
+  <button onclick="window.print()">🖨️ Imprimer / PDF</button>
+  <button onclick="exportJSON()">💾 Sauver JSON</button>
+  <button onclick="document.getElementById('imp').click()">📂 Charger</button>
+  <input type="file" id="imp" accept=".json" style="display:none" onchange="importJSON(event)">
+  <button class="danger" onclick="resetForm()">🗑️ Réinitialiser</button>
 </div>
 
-<div class="pages-container">
+<!-- ============================================================== -->
+<!-- PAGE 1                                                          -->
+<!-- ============================================================== -->
+<section class="page" id="page1">
 
-<!-- ═══════════════════════════════════════════════════════════════
-     PAGE 1
-═══════════════════════════════════════════════════════════════ -->
-<div class="page" id="page1">
-
-  <!-- TITRE + LIEU PROTÉGÉ -->
-  <div class="page-header">
-    <div class="diag-title">DIAGNOSTIC SÉCURITÉ</div>
+  <div class="header-top">
+    <h1>DIAGNOSTIC SÉCURITÉ</h1>
     <div class="lieu-protege">
-      <label>Lieu protégé N°</label>
-      <div class="digit-group">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d1">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d2">
-        <span class="digit-sep"> </span>
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d3">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d4">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d5">
-        <span class="digit-sep"> </span>
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d6">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d7">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d8">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d9">
-        <span class="digit-sep"> </span>
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d10">
-        <span class="digit-sep"> </span>
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d11">
-        <span class="digit-sep"> </span>
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu_d12">
-      </div>
+      <span>Lieu protégé N°</span>
+      <span class="cases-row" id="cases-num"></span>
     </div>
   </div>
 
-  <!-- INFOS SOCIÉTÉ -->
-  <div class="info-grid">
-    <div class="info-row">
-      <span class="info-label">Raison sociale</span>
-      <div class="info-input"><input type="text" data-field="raison_sociale" placeholder="Raison sociale"></div>
-      <div class="info-sep"></div>
-      <span class="info-label">Enseigne</span>
-      <div class="info-input"><input type="text" data-field="enseigne" placeholder="Enseigne"></div>
+  <div class="bloc">
+    <div class="ligne">
+      <label>Raison sociale</label>
+      <input class="champ" data-key="raison_sociale">
+      <label>Enseigne</label>
+      <input class="champ" data-key="enseigne">
     </div>
-    <div class="info-row">
-      <span class="info-label">Nom du responsable/dirigeant</span>
-      <div class="info-input"><input type="text" data-field="responsable" placeholder="Nom du responsable/dirigeant"></div>
-      <div class="info-sep"></div>
-      <span class="info-label">Activité</span>
-      <div class="info-input"><input type="text" data-field="activite" placeholder="Activité"></div>
+    <div class="ligne">
+      <label>Nom du responsable/dirigeant</label>
+      <input class="champ" data-key="responsable">
+      <label>Activité</label>
+      <input class="champ champ-court" data-key="activite">
     </div>
-    <div class="info-row">
-      <span class="info-label">Adresse</span>
-      <div class="info-input" style="flex:3"><input type="text" data-field="adresse" placeholder="Adresse"></div>
+    <div class="ligne">
+      <label>Adresse</label>
+      <input class="champ" data-key="adresse">
     </div>
-    <div class="info-row">
-      <span class="info-label">Code postal</span>
-      <div class="info-input" style="max-width:80px"><input type="text" data-field="code_postal" placeholder="Code postal"></div>
-      <span class="info-label" style="margin-left:10px">Ville</span>
-      <div class="info-input"><input type="text" data-field="ville" placeholder="Ville"></div>
+    <div class="ligne">
+      <label>Code postal</label>
+      <input class="champ champ-mini" data-key="cp">
+      <label>Ville</label>
+      <input class="champ" data-key="ville">
     </div>
-    <div class="info-row" style="border-bottom:none">
-      <span class="info-label">Les lieux sont à protéger :</span>
-      <div style="display:flex;gap:14px;align-items:center;padding-left:8px">
-        <label class="cb-item"><input type="checkbox" data-field="protect_total"> Totalement</label>
-        <label class="cb-item"><input type="checkbox" data-field="protect_partie"> En partie</label>
-      </div>
+    <div class="ligne" style="margin-top:4px">
+      <label><b>Les lieux sont à protéger :</b></label>
+      <label class="case"><input type="checkbox" data-key="proteger_total"> Totalement</label>
+      <label class="case"><input type="checkbox" data-key="proteger_partie"> En partie</label>
     </div>
   </div>
 
-  <!-- CARACTÉRISTIQUES DU LIEU PROTÉGÉ -->
-  <div class="section-header mt">Caractéristiques du lieu protégé</div>
-  <div class="carac-block">
-
-    <div class="carac-row" style="flex-wrap:nowrap">
-      <span class="carac-label" style="white-space:nowrap">Caractéristiques &nbsp; Surface en m²</span>
-      <input type="text" class="carac-input" style="max-width:50px" data-field="surface" placeholder="m²">
-      <span class="carac-label" style="white-space:nowrap;margin-left:8px">Nombre de pièces</span>
-      <input type="text" class="carac-input" style="max-width:40px" data-field="nb_pieces" placeholder="Nb">
+  <div class="bandeau">Caractéristiques du lieu protégé</div>
+  <div class="bloc">
+    <div class="ligne">
+      <label><b>Caractéristiques</b></label>
+      <label>Surface en m²</label>
+      <input class="champ champ-mini" data-key="surface">
+      <label>Nombre de pièces</label>
+      <input class="champ champ-mini" data-key="nb_pieces">
+    </div>
+    <div class="ligne">
+      <label><b>Chauffage</b></label>
+      <label class="case"><input type="checkbox" data-key="chauf_clim"> Climatisation</label>
+      <label class="case"><input type="checkbox" data-key="chauf_rad"> Radiateurs</label>
+      <label class="case"><input type="checkbox" data-key="chauf_autre"> Autre</label>
+      <input class="champ" data-key="chauf_autre_txt">
+    </div>
+    <div class="ligne">
+      <label><b>Téléphone</b></label>
+      <label class="case"><input type="checkbox" data-key="tel_adsl"> ADSL/Câble/Fibre</label>
+      <label class="case"><input type="checkbox" data-key="tel_autre"> Autre</label>
+      <input class="champ" data-key="tel_autre_txt">
+    </div>
+    <div class="ligne">
+      <label>Opérateur</label>
+      <input class="champ champ-court" data-key="operateur">
+      <label>Emplacement de la box</label>
+      <input class="champ" data-key="emplacement_box">
+    </div>
+    <div class="ligne">
+      <label><b>Autre système d'alarme</b></label>
+      <label class="case"><input type="checkbox" data-key="alarme_enplace"> En place</label>
+      <label class="case"><input type="checkbox" data-key="alarme_fct"> Fonctionnel</label>
+      <label class="case"><input type="checkbox" data-key="alarme_centre"> Connecté à un centre de surveillance</label>
+    </div>
+    <div class="ligne">
+      <label>Présence d'animaux lorsque le système est en marche</label>
+      <label>Nombre</label>
+      <input class="champ champ-mini" data-key="animaux_nb">
+      <label>Type d'animaux</label>
+      <input class="champ" data-key="animaux_type">
     </div>
 
-    <div class="carac-row">
-      <span class="carac-label">Chauffage</span>
-      <label class="cb-item"><input type="checkbox" data-field="chauff_clim"> Climatisation</label>
-      <label class="cb-item"><input type="checkbox" data-field="chauff_rad"> Radiateurs</label>
-      <label class="cb-item"><input type="checkbox" data-field="chauff_autre"> Autre</label>
-      <input type="text" class="carac-input" style="max-width:100px" data-field="chauff_autre_txt" placeholder="Préciser">
+    <div class="ligne" style="margin-top:6px">
+      <label class="case"><input type="checkbox" data-key="bat_indep"></label>
+      <b>Local professionnel dans un bâtiment indépendant</b>
+    </div>
+    <div class="ligne sub" style="margin-left:18px">
+      <label>Situation</label>
+      <label class="case"><input type="checkbox" data-key="sit_isolee"> Isolée</label>
+      <label class="case"><input type="checkbox" data-key="sit_zone"> En zone d'activité</label>
+      <label class="case"><input type="checkbox" data-key="sit_cour"> Cour</label>
+      <label class="case"><input type="checkbox" data-key="sit_dep"> Dépendances</label>
+    </div>
+    <div class="ligne sub" style="margin-left:18px">
+      <label>Accès au bâtiment</label>
+      <label class="case"><input type="checkbox" data-key="acces_facades"> Possible à toutes les façades du bâtiment</label>
     </div>
 
-    <div class="carac-row">
-      <span class="carac-label">Téléphone</span>
-      <label class="cb-item"><input type="checkbox" data-field="tel_adsl"> ADSL/Câble/Fibre</label>
-      <label class="cb-item"><input type="checkbox" data-field="tel_autre"> Autre</label>
-      <input type="text" class="carac-input" style="max-width:70px" data-field="tel_autre_txt" placeholder="Préciser">
-      <span class="carac-label">Opérateur</span>
-      <input type="text" class="carac-input" style="max-width:70px" data-field="operateur" placeholder="Opérateur">
-      <span class="carac-label">Emplacement de la box</span>
-      <input type="text" class="carac-input" data-field="box_empl" placeholder="Emplacement">
+    <div class="ligne" style="margin-top:4px">
+      <label class="case"><input type="checkbox" data-key="immeuble"></label>
+      <b>Local professionnel dans un immeuble collectif :</b>
     </div>
-
-    <div class="carac-row">
-      <span class="carac-label">Autre système d'alarme</span>
-      <label class="cb-item"><input type="checkbox" data-field="alarme_place"> En place</label>
-      <label class="cb-item"><input type="checkbox" data-field="alarme_fonct"> Fonctionnel</label>
-      <label class="cb-item"><input type="checkbox" data-field="alarme_centre"> Connecté à un centre de surveillance</label>
+    <div class="ligne sub" style="margin-left:18px">
+      <label>Situation</label>
+      <label class="case"><input type="checkbox" data-key="im_galerie"> En galerie commerciale</label>
+      <label>Nb de niveaux</label>
+      <input class="champ champ-mini" data-key="im_niveaux">
+      <label>N° d'étage de l'entrée principale</label>
+      <input class="champ champ-mini" data-key="im_etage">
+      <label>Nb d'étages du bâtiment</label>
+      <input class="champ champ-mini" data-key="im_nb_etages">
     </div>
-
-    <div class="carac-row">
-      <span class="carac-label">Présence d'animaux lorsque le système est en marche</span>
-      <span class="carac-label">Nombre</span>
-      <input type="text" class="carac-input" style="max-width:30px" data-field="animaux_nb" placeholder="0">
-      <span class="carac-label">Type d'animaux</span>
-      <input type="text" class="carac-input" data-field="animaux_type" placeholder="Type">
-    </div>
-
-  </div>
-
-  <!-- LOCAL BÂTIMENT INDÉPENDANT -->
-  <div class="local-block">
-    <div class="title-row">
-      <label class="cb-item" style="font-weight:bold">
-        <input type="checkbox" data-field="local_indep" style="width:13px;height:13px">
-        Local professionnel dans un bâtiment indépendant :
-      </label>
-    </div>
-    <div class="sub-row">
-      <span style="font-size:6.5pt;white-space:nowrap">Situation</span>
-      <label class="cb-item"><input type="checkbox" data-field="sit_isolee"> Isolée</label>
-      <label class="cb-item"><input type="checkbox" data-field="sit_zone"> En zone d'activité</label>
-      <label class="cb-item"><input type="checkbox" data-field="sit_cour"> Cour</label>
-      <label class="cb-item"><input type="checkbox" data-field="sit_depend"> Dépendances</label>
-    </div>
-    <div class="sub-row">
-      <span style="font-size:6.5pt;white-space:nowrap">Accès au bâtiment</span>
-      <label class="cb-item"><input type="checkbox" data-field="acces_facades"> Possible à toutes les façades du bâtiment</label>
-    </div>
-  </div>
-
-  <!-- LOCAL IMMEUBLE COLLECTIF -->
-  <div class="local-block" style="border-top:none">
-    <div class="title-row">
-      <label class="cb-item" style="font-weight:bold">
-        <input type="checkbox" data-field="local_collectif" style="width:13px;height:13px">
-        Local professionnel dans un immeuble collectif :
-      </label>
-    </div>
-    <div class="sub-row">
-      <span style="font-size:6.5pt;white-space:nowrap">Situation</span>
-      <label class="cb-item"><input type="checkbox" data-field="col_galerie"> En galerie commerciale</label>
-      <span style="font-size:6.5pt">Nb de niveaux</span>
-      <input type="text" style="width:20px;border-bottom:1px solid #000;text-align:center;font-size:6.5pt" data-field="col_niveaux">
-      <span style="font-size:6.5pt">N° d'étage de l'entrée principale</span>
-      <input type="text" style="width:20px;border:1px solid #000;text-align:center;font-size:6.5pt" data-field="col_etage_entree">
-      <span style="font-size:6.5pt">Nb d'étages du bâtiment</span>
-      <input type="text" style="width:20px;border:1px solid #000;text-align:center;font-size:6.5pt" data-field="col_etages_bat">
-    </div>
-    <div class="sub-row">
-      <span style="font-size:6.5pt;white-space:nowrap">Accès au local</span>
-      <label class="cb-item"><input type="checkbox" data-field="acc_gardien"> Gardien</label>
-      <label class="cb-item"><input type="checkbox" data-field="acc_badge"> Badge</label>
-      <label class="cb-item"><input type="checkbox" data-field="acc_interphone"> Interphone</label>
-      <label class="cb-item"><input type="checkbox" data-field="acc_digicode"> Digicode</label>
-      <label class="cb-item"><input type="checkbox" data-field="acc_porte"> Porte de service</label>
-      <label class="cb-item"><input type="checkbox" data-field="acc_autre"> Autre</label>
+    <div class="ligne sub" style="margin-left:18px">
+      <label>Accès au local</label>
+      <label class="case"><input type="checkbox" data-key="ac_gardien"> Gardien</label>
+      <label class="case"><input type="checkbox" data-key="ac_badge"> Badge</label>
+      <label class="case"><input type="checkbox" data-key="ac_interphone"> Interphone</label>
+      <label class="case"><input type="checkbox" data-key="ac_digicode"> Digicode</label>
+      <label class="case"><input type="checkbox" data-key="ac_porte"> Porte de service</label>
+      <label class="case"><input type="checkbox" data-key="ac_autre"> Autre</label>
     </div>
   </div>
 
-  <!-- TITRE TABLE RECOMMANDATIONS -->
-  <div class="reco-section-title">Recommandations de pose du système d'alarme - intrusion</div>
+  <div class="bandeau">Recommandations de pose du système d'alarme - intrusion</div>
 
-  <!-- TABLE RECOMMANDATIONS -->
-  <div class="reco-table-wrapper">
-  <table class="reco">
-    <colgroup>
-      <col class="c-piece">
-      <col class="c-niv">
-      <col class="c-ouv">
-      <col class="c-vit">
-      <col class="c-pres">
-      <col class="c-pass">
-      <col class="c-iss">
-      <col class="c-circ">
-      <col class="c-on">
-      <col class="c-centr">
-      <col class="c-sir">
-      <col class="c-clav">
-      <col class="c-dmv">
-      <col class="c-dov">
-      <col class="c-surv">
-      <col class="c-pt">
-      <col class="c-choix">
-    </colgroup>
+  <table class="tab" id="tab-intrusion">
     <thead>
-      <!-- ROW H1: Main headers -->
-      <tr class="h1">
-        <th rowspan="3" class="piece-main" style="text-align:left;padding:2px 3px;font-size:5.5pt;background:#000;color:#fff">
-          LISTE DE L'ENSEMBLE<br>DES PIÈCES DU LOCAL<br>PROFESSIONNEL
-        </th>
-        <th colspan="7" style="background:#000;color:#fff;font-size:6pt;border-bottom:1px solid #555">CONSTAT</th>
-        <th rowspan="2" style="background:#000;color:#fff;font-size:5pt;white-space:nowrap">O / N*</th>
-        <th colspan="6" style="background:#000;color:#fff;font-size:6pt;border-bottom:1px solid #555">RECOMMANDATIONS</th>
-        <th rowspan="3" style="background:#000;color:#fff;font-size:5.5pt;white-space:nowrap">P / T</th>
-        <th rowspan="3" style="background:#000;color:#fff;font-size:4.5pt;padding:1px">Choix de l'abonné ou de son représentant<br>(O / N / L)*</th>
+      <tr>
+        <th rowspan="3" style="width:24%">LISTE DE L'ENSEMBLE<br>DES PIÈCES DU LOCAL<br>PROFESSIONNEL</th>
+        <th colspan="7" class="bandeau-th">CONSTAT</th>
+        <th colspan="6" class="bandeau-th">RECOMMANDATIONS</th>
+        <th rowspan="3" class="vert" style="width:22px">Choix de l'abonné ou de son représentant ( O / N / L*)</th>
       </tr>
-      <!-- ROW H2: Sub-headers -->
-      <tr class="h2">
-        <th colspan="3" style="background:#444;color:#fff;font-size:5pt">Chiffre / Nombre / V,S,RM*</th>
-        <th colspan="4" style="background:#444;color:#fff;font-size:5pt">O / N*</th>
-        <th colspan="6" style="background:#444;color:#fff;font-size:5pt">Nombre</th>
+      <tr>
+        <th colspan="2" style="font-size:7pt">Chiffre / Nombre / V.S, RM</th>
+        <th colspan="5" style="font-size:7pt">O / N*</th>
+        <th colspan="4" style="font-size:7pt">Nombre</th>
+        <th colspan="2" style="font-size:7pt">P / T</th>
       </tr>
-      <!-- ROW H3: Rotated column labels -->
-      <tr class="h3">
-        <th><span class="rot">Niveaux</span></th>
-        <th><span class="rot">Ouvertures vers l'extérieur</span></th>
-        <th><span class="rot">Vitrine, devantures, issues maîtrisées</span></th>
-        <th><span class="rot">Présence de valeurs / stocks</span></th>
-        <th><span class="rot">Passage obligé</span></th>
-        <th><span class="rot">Issue principale</span></th>
-        <th><span class="rot">Circulation d'animaux</span></th>
-        <th><span class="rot">O / N*</span></th>
-        <th><span class="rot">Centrale</span></th>
-        <th><span class="rot">Sirène</span></th>
-        <th><span class="rot">Clavier</span></th>
-        <th><span class="rot">Détecteurs de mouvement</span></th>
-        <th><span class="rot">Détecteurs d'ouverture</span></th>
-        <th><span class="rot">Surveillance Partiel / Temporisation</span></th>
+      <tr>
+        <th class="vert">Niveaux</th>
+        <th class="vert">Ouvertures vers l'extérieur</th>
+        <th class="vert">Vitrine, skydome,<br>rideau métallique</th>
+        <th class="vert">Présence de valeurs / stocks</th>
+        <th class="vert">Passage obligé</th>
+        <th class="vert">Issue principale</th>
+        <th class="vert">Circulation d'animaux</th>
+        <th class="vert">Centrale</th>
+        <th class="vert">Sirène</th>
+        <th class="vert">Clavier</th>
+        <th class="vert">Détecteurs de mouvement</th>
+        <th class="vert">Détecteurs d'ouverture</th>
+        <th class="vert">Surveillance<br>Partiel / Temporisation</th>
       </tr>
     </thead>
-    <tbody>
-      <!-- 15 pièces configurables -->
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p1_nom" placeholder="Entrée"></td>
-        <td><input type="text" data-field="p1_niv"></td>
-        <td><input type="text" data-field="p1_ouv"></td>
-        <td><input type="text" data-field="p1_vit"></td>
-        <td><input type="text" data-field="p1_pres"></td>
-        <td><input type="text" data-field="p1_pass"></td>
-        <td><input type="text" data-field="p1_iss"></td>
-        <td><input type="text" data-field="p1_circ"></td>
-        <td><input type="text" data-field="p1_on"></td>
-        <td><input type="text" data-field="p1_centr"></td>
-        <td><input type="text" data-field="p1_sir"></td>
-        <td><input type="text" data-field="p1_clav"></td>
-        <td><input type="text" data-field="p1_dmv"></td>
-        <td><input type="text" data-field="p1_dov"></td>
-        <td><input type="text" data-field="p1_surv"></td>
-        <td><input type="text" data-field="p1_pt"></td>
-        <td><input type="text" data-field="p1_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p2_nom" placeholder="Restaurant"></td>
-        <td><input type="text" data-field="p2_niv"></td>
-        <td><input type="text" data-field="p2_ouv"></td>
-        <td><input type="text" data-field="p2_vit"></td>
-        <td><input type="text" data-field="p2_pres"></td>
-        <td><input type="text" data-field="p2_pass"></td>
-        <td><input type="text" data-field="p2_iss"></td>
-        <td><input type="text" data-field="p2_circ"></td>
-        <td><input type="text" data-field="p2_on"></td>
-        <td><input type="text" data-field="p2_centr"></td>
-        <td><input type="text" data-field="p2_sir"></td>
-        <td><input type="text" data-field="p2_clav"></td>
-        <td><input type="text" data-field="p2_dmv"></td>
-        <td><input type="text" data-field="p2_dov"></td>
-        <td><input type="text" data-field="p2_surv"></td>
-        <td><input type="text" data-field="p2_pt"></td>
-        <td><input type="text" data-field="p2_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p3_nom" placeholder="Espace entr."></td>
-        <td><input type="text" data-field="p3_niv"></td>
-        <td><input type="text" data-field="p3_ouv"></td>
-        <td><input type="text" data-field="p3_vit"></td>
-        <td><input type="text" data-field="p3_pres"></td>
-        <td><input type="text" data-field="p3_pass"></td>
-        <td><input type="text" data-field="p3_iss"></td>
-        <td><input type="text" data-field="p3_circ"></td>
-        <td><input type="text" data-field="p3_on"></td>
-        <td><input type="text" data-field="p3_centr"></td>
-        <td><input type="text" data-field="p3_sir"></td>
-        <td><input type="text" data-field="p3_clav"></td>
-        <td><input type="text" data-field="p3_dmv"></td>
-        <td><input type="text" data-field="p3_dov"></td>
-        <td><input type="text" data-field="p3_surv"></td>
-        <td><input type="text" data-field="p3_pt"></td>
-        <td><input type="text" data-field="p3_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p4_nom" placeholder="Couloir accès"></td>
-        <td><input type="text" data-field="p4_niv"></td>
-        <td><input type="text" data-field="p4_ouv"></td>
-        <td><input type="text" data-field="p4_vit"></td>
-        <td><input type="text" data-field="p4_pres"></td>
-        <td><input type="text" data-field="p4_pass"></td>
-        <td><input type="text" data-field="p4_iss"></td>
-        <td><input type="text" data-field="p4_circ"></td>
-        <td><input type="text" data-field="p4_on"></td>
-        <td><input type="text" data-field="p4_centr"></td>
-        <td><input type="text" data-field="p4_sir"></td>
-        <td><input type="text" data-field="p4_clav"></td>
-        <td><input type="text" data-field="p4_dmv"></td>
-        <td><input type="text" data-field="p4_dov"></td>
-        <td><input type="text" data-field="p4_surv"></td>
-        <td><input type="text" data-field="p4_pt"></td>
-        <td><input type="text" data-field="p4_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p5_nom" placeholder="Espace plage"></td>
-        <td><input type="text" data-field="p5_niv"></td>
-        <td><input type="text" data-field="p5_ouv"></td>
-        <td><input type="text" data-field="p5_vit"></td>
-        <td><input type="text" data-field="p5_pres"></td>
-        <td><input type="text" data-field="p5_pass"></td>
-        <td><input type="text" data-field="p5_iss"></td>
-        <td><input type="text" data-field="p5_circ"></td>
-        <td><input type="text" data-field="p5_on"></td>
-        <td><input type="text" data-field="p5_centr"></td>
-        <td><input type="text" data-field="p5_sir"></td>
-        <td><input type="text" data-field="p5_clav"></td>
-        <td><input type="text" data-field="p5_dmv"></td>
-        <td><input type="text" data-field="p5_dov"></td>
-        <td><input type="text" data-field="p5_surv"></td>
-        <td><input type="text" data-field="p5_pt"></td>
-        <td><input type="text" data-field="p5_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p6_nom" placeholder="Cuisine"></td>
-        <td><input type="text" data-field="p6_niv"></td>
-        <td><input type="text" data-field="p6_ouv"></td>
-        <td><input type="text" data-field="p6_vit"></td>
-        <td><input type="text" data-field="p6_pres"></td>
-        <td><input type="text" data-field="p6_pass"></td>
-        <td><input type="text" data-field="p6_iss"></td>
-        <td><input type="text" data-field="p6_circ"></td>
-        <td><input type="text" data-field="p6_on"></td>
-        <td><input type="text" data-field="p6_centr"></td>
-        <td><input type="text" data-field="p6_sir"></td>
-        <td><input type="text" data-field="p6_clav"></td>
-        <td><input type="text" data-field="p6_dmv"></td>
-        <td><input type="text" data-field="p6_dov"></td>
-        <td><input type="text" data-field="p6_surv"></td>
-        <td><input type="text" data-field="p6_pt"></td>
-        <td><input type="text" data-field="p6_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p7_nom" placeholder="Verre"></td>
-        <td><input type="text" data-field="p7_niv"></td>
-        <td><input type="text" data-field="p7_ouv"></td>
-        <td><input type="text" data-field="p7_vit"></td>
-        <td><input type="text" data-field="p7_pres"></td>
-        <td><input type="text" data-field="p7_pass"></td>
-        <td><input type="text" data-field="p7_iss"></td>
-        <td><input type="text" data-field="p7_circ"></td>
-        <td><input type="text" data-field="p7_on"></td>
-        <td><input type="text" data-field="p7_centr"></td>
-        <td><input type="text" data-field="p7_sir"></td>
-        <td><input type="text" data-field="p7_clav"></td>
-        <td><input type="text" data-field="p7_dmv"></td>
-        <td><input type="text" data-field="p7_dov"></td>
-        <td><input type="text" data-field="p7_surv"></td>
-        <td><input type="text" data-field="p7_pt"></td>
-        <td><input type="text" data-field="p7_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p8_nom" placeholder="Local Four"></td>
-        <td><input type="text" data-field="p8_niv"></td>
-        <td><input type="text" data-field="p8_ouv"></td>
-        <td><input type="text" data-field="p8_vit"></td>
-        <td><input type="text" data-field="p8_pres"></td>
-        <td><input type="text" data-field="p8_pass"></td>
-        <td><input type="text" data-field="p8_iss"></td>
-        <td><input type="text" data-field="p8_circ"></td>
-        <td><input type="text" data-field="p8_on"></td>
-        <td><input type="text" data-field="p8_centr"></td>
-        <td><input type="text" data-field="p8_sir"></td>
-        <td><input type="text" data-field="p8_clav"></td>
-        <td><input type="text" data-field="p8_dmv"></td>
-        <td><input type="text" data-field="p8_dov"></td>
-        <td><input type="text" data-field="p8_surv"></td>
-        <td><input type="text" data-field="p8_pt"></td>
-        <td><input type="text" data-field="p8_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p9_nom" placeholder="Arrière Four"></td>
-        <td><input type="text" data-field="p9_niv"></td>
-        <td><input type="text" data-field="p9_ouv"></td>
-        <td><input type="text" data-field="p9_vit"></td>
-        <td><input type="text" data-field="p9_pres"></td>
-        <td><input type="text" data-field="p9_pass"></td>
-        <td><input type="text" data-field="p9_iss"></td>
-        <td><input type="text" data-field="p9_circ"></td>
-        <td><input type="text" data-field="p9_on"></td>
-        <td><input type="text" data-field="p9_centr"></td>
-        <td><input type="text" data-field="p9_sir"></td>
-        <td><input type="text" data-field="p9_clav"></td>
-        <td><input type="text" data-field="p9_dmv"></td>
-        <td><input type="text" data-field="p9_dov"></td>
-        <td><input type="text" data-field="p9_surv"></td>
-        <td><input type="text" data-field="p9_pt"></td>
-        <td><input type="text" data-field="p9_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p10_nom" placeholder="Dégivreuse"></td>
-        <td><input type="text" data-field="p10_niv"></td>
-        <td><input type="text" data-field="p10_ouv"></td>
-        <td><input type="text" data-field="p10_vit"></td>
-        <td><input type="text" data-field="p10_pres"></td>
-        <td><input type="text" data-field="p10_pass"></td>
-        <td><input type="text" data-field="p10_iss"></td>
-        <td><input type="text" data-field="p10_circ"></td>
-        <td><input type="text" data-field="p10_on"></td>
-        <td><input type="text" data-field="p10_centr"></td>
-        <td><input type="text" data-field="p10_sir"></td>
-        <td><input type="text" data-field="p10_clav"></td>
-        <td><input type="text" data-field="p10_dmv"></td>
-        <td><input type="text" data-field="p10_dov"></td>
-        <td><input type="text" data-field="p10_surv"></td>
-        <td><input type="text" data-field="p10_pt"></td>
-        <td><input type="text" data-field="p10_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p11_nom" placeholder="Local chaufferie"></td>
-        <td><input type="text" data-field="p11_niv"></td>
-        <td><input type="text" data-field="p11_ouv"></td>
-        <td><input type="text" data-field="p11_vit"></td>
-        <td><input type="text" data-field="p11_pres"></td>
-        <td><input type="text" data-field="p11_pass"></td>
-        <td><input type="text" data-field="p11_iss"></td>
-        <td><input type="text" data-field="p11_circ"></td>
-        <td><input type="text" data-field="p11_on"></td>
-        <td><input type="text" data-field="p11_centr"></td>
-        <td><input type="text" data-field="p11_sir"></td>
-        <td><input type="text" data-field="p11_clav"></td>
-        <td><input type="text" data-field="p11_dmv"></td>
-        <td><input type="text" data-field="p11_dov"></td>
-        <td><input type="text" data-field="p11_surv"></td>
-        <td><input type="text" data-field="p11_pt"></td>
-        <td><input type="text" data-field="p11_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p12_nom" placeholder="Bureau"></td>
-        <td><input type="text" data-field="p12_niv"></td>
-        <td><input type="text" data-field="p12_ouv"></td>
-        <td><input type="text" data-field="p12_vit"></td>
-        <td><input type="text" data-field="p12_pres"></td>
-        <td><input type="text" data-field="p12_pass"></td>
-        <td><input type="text" data-field="p12_iss"></td>
-        <td><input type="text" data-field="p12_circ"></td>
-        <td><input type="text" data-field="p12_on"></td>
-        <td><input type="text" data-field="p12_centr"></td>
-        <td><input type="text" data-field="p12_sir"></td>
-        <td><input type="text" data-field="p12_clav"></td>
-        <td><input type="text" data-field="p12_dmv"></td>
-        <td><input type="text" data-field="p12_dov"></td>
-        <td><input type="text" data-field="p12_surv"></td>
-        <td><input type="text" data-field="p12_pt"></td>
-        <td><input type="text" data-field="p12_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p13_nom" placeholder=""></td>
-        <td><input type="text" data-field="p13_niv"></td>
-        <td><input type="text" data-field="p13_ouv"></td>
-        <td><input type="text" data-field="p13_vit"></td>
-        <td><input type="text" data-field="p13_pres"></td>
-        <td><input type="text" data-field="p13_pass"></td>
-        <td><input type="text" data-field="p13_iss"></td>
-        <td><input type="text" data-field="p13_circ"></td>
-        <td><input type="text" data-field="p13_on"></td>
-        <td><input type="text" data-field="p13_centr"></td>
-        <td><input type="text" data-field="p13_sir"></td>
-        <td><input type="text" data-field="p13_clav"></td>
-        <td><input type="text" data-field="p13_dmv"></td>
-        <td><input type="text" data-field="p13_dov"></td>
-        <td><input type="text" data-field="p13_surv"></td>
-        <td><input type="text" data-field="p13_pt"></td>
-        <td><input type="text" data-field="p13_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p14_nom" placeholder=""></td>
-        <td><input type="text" data-field="p14_niv"></td>
-        <td><input type="text" data-field="p14_ouv"></td>
-        <td><input type="text" data-field="p14_vit"></td>
-        <td><input type="text" data-field="p14_pres"></td>
-        <td><input type="text" data-field="p14_pass"></td>
-        <td><input type="text" data-field="p14_iss"></td>
-        <td><input type="text" data-field="p14_circ"></td>
-        <td><input type="text" data-field="p14_on"></td>
-        <td><input type="text" data-field="p14_centr"></td>
-        <td><input type="text" data-field="p14_sir"></td>
-        <td><input type="text" data-field="p14_clav"></td>
-        <td><input type="text" data-field="p14_dmv"></td>
-        <td><input type="text" data-field="p14_dov"></td>
-        <td><input type="text" data-field="p14_surv"></td>
-        <td><input type="text" data-field="p14_pt"></td>
-        <td><input type="text" data-field="p14_choix"></td>
-      </tr>
-      <tr>
-        <td class="piece-name"><input type="text" data-field="p15_nom" placeholder=""></td>
-        <td><input type="text" data-field="p15_niv"></td>
-        <td><input type="text" data-field="p15_ouv"></td>
-        <td><input type="text" data-field="p15_vit"></td>
-        <td><input type="text" data-field="p15_pres"></td>
-        <td><input type="text" data-field="p15_pass"></td>
-        <td><input type="text" data-field="p15_iss"></td>
-        <td><input type="text" data-field="p15_circ"></td>
-        <td><input type="text" data-field="p15_on"></td>
-        <td><input type="text" data-field="p15_centr"></td>
-        <td><input type="text" data-field="p15_sir"></td>
-        <td><input type="text" data-field="p15_clav"></td>
-        <td><input type="text" data-field="p15_dmv"></td>
-        <td><input type="text" data-field="p15_dov"></td>
-        <td><input type="text" data-field="p15_surv"></td>
-        <td><input type="text" data-field="p15_pt"></td>
-        <td><input type="text" data-field="p15_choix"></td>
-      </tr>
-    </tbody>
+    <tbody id="tbody-intrusion"></tbody>
   </table>
+
+  <div class="telecommande">
+    <div class="lab">TÉLÉCOMMANDE (Nombre)</div>
+    <div class="seg"><b>Standard</b> <input class="champ champ-mini" data-key="tc_standard"></div>
+    <div class="seg"><b>Biométrique</b> <input class="champ champ-mini" data-key="tc_biometrique"></div>
   </div>
 
-  <!-- TÉLÉCOMMANDE -->
-  <div class="tele-row">
-    <div class="tele-label">TÉLÉCOMMANDE (Nombre)</div>
-    <div class="tele-content">
-      <div class="tele-item">
-        <span>Standard</span>
-        <span class="tele-input"><input type="text" data-field="tele_standard" style="width:30px;text-align:center;border-bottom:1px solid #000"></span>
-      </div>
-      <div class="tele-item">
-        <span>Biométrique</span>
-        <span class="tele-input"><input type="text" data-field="tele_bio" style="width:30px;text-align:center;border-bottom:1px solid #000"></span>
-      </div>
-    </div>
+  <div class="legende">
+    *O = Oui / N = Non / L = Limite (si l'abonné ne retient pas la totalité des recommandations du technicien-conseil. Les préconisations non retenues seront listées ci-contre)
   </div>
 
-  <!-- NOTE DE BAS DE PAGE -->
-  <div class="footer-note">
-    *O = Oui / N = Non / L = Limité (si l'abonné ne retient pas la totalité des recommandations du technicien-conseil. Les préconisations non retenues seront listées ci-contre)
-  </div>
-
-  <!-- PARAPHES -->
-  <div class="paraphe-row">
-    <div class="paraphe-item">
-      <span class="paraphe-label">Paraphe du technicien-conseil :</span>
+  <div class="footer-page">
+    <div>
+      <div><b>Paraphe du technicien-conseil :</b></div>
       <div class="paraphe-box"></div>
     </div>
-    <div style="flex:2;display:flex;align-items:center;justify-content:center;font-size:7pt;border:1px solid #000;padding:2px 6px">
-      <span>EXEMPLAIRE EPS / FEUILLET N°</span>
-      <input type="text" data-field="feuillet_p1" style="width:20px;border-bottom:1px solid #000;text-align:center;margin:0 4px">
-      <span>/</span>
-      <input type="text" data-field="feuillet_total_p1" style="width:20px;border-bottom:1px solid #000;text-align:center;margin:0 4px">
-    </div>
-    <div class="paraphe-item">
-      <span class="paraphe-label">Paraphe de l'abonné :</span>
+    <div>EXEMPLAIRE EPS / FEUILLET N° <b>1 / 2</b></div>
+    <div>
+      <div><b>Paraphe de l'abonné :</b></div>
       <div class="paraphe-box"></div>
     </div>
   </div>
+</section>
 
-</div><!-- /page1 -->
+<!-- ============================================================== -->
+<!-- PAGE 2                                                          -->
+<!-- ============================================================== -->
+<section class="page" id="page2">
 
-
-<!-- ═══════════════════════════════════════════════════════════════
-     PAGE 2
-═══════════════════════════════════════════════════════════════ -->
-<div class="page" id="page2">
-
-  <!-- EN-TÊTE PAGE 2 -->
-  <div class="page2-header">
-    <div style="display:flex;align-items:center;gap:6px;font-size:7pt">
-      <span style="font-weight:bold">Lieu protégé N°</span>
-      <div class="digit-group">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d1">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d2">
-        <span class="digit-sep"> </span>
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d3">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d4">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d5">
-        <span class="digit-sep"> </span>
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d6">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d7">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d8">
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d9">
-        <span class="digit-sep"> </span>
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d10">
-        <span class="digit-sep"> </span>
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d11">
-        <span class="digit-sep"> </span>
-        <input type="text" class="digit-box" maxlength="1" data-field="lieu2_d12">
-      </div>
-    </div>
+  <div style="display:flex; justify-content:flex-end; align-items:center; gap:6px; margin-bottom:4px; font-size:9pt">
+    <span>Lieu protégé N°</span>
+    <span class="cases-row" id="cases-num-2"></span>
   </div>
 
-  <!-- EXTENSIONS -->
-  <div class="ext-section-title">Extensions</div>
-  <div class="ext-section-wrapper">
-  <table class="ext">
-    <colgroup>
-      <col class="c-ext-name">
-      <col class="c-ext-reco">
-      <col class="c-ext-piece">
-      <col class="c-ext-niv">
-      <col class="c-ext-pose">
-      <col class="c-ext-choix">
-    </colgroup>
+  <div class="bandeau">Extensions</div>
+  <table class="ext" id="tab-ext">
     <thead>
       <tr>
-        <th rowspan="2" style="text-align:left;padding:3px;font-size:6pt">LISTE DES EXTENSIONS</th>
-        <th>RECOM-<br>MANDATION</th>
-        <th>PIÈCE</th>
-        <th>NIVEAU</th>
-        <th>POSE</th>
-        <th rowspan="2" style="font-size:4.5pt;padding:1px">Choix de l'abonné ou de son représentant<br>(O / N / L)*</th>
+        <th rowspan="2" style="width:36%">LISTE DES EXTENSIONS</th>
+        <th class="bandeau-th" style="width:13%">RECOM-<br>MANDATION</th>
+        <th class="bandeau-th" style="width:18%">PIÈCE</th>
+        <th class="bandeau-th" style="width:11%">NIVEAU</th>
+        <th class="bandeau-th" style="width:11%">POSE</th>
+        <th rowspan="2" class="vert" style="width:11%">Choix de l'abonné ou de son représentant ( O / N / L*)</th>
       </tr>
-      <tr class="ext-h2">
-        <th><span class="rot">O = Oui / N = Non</span></th>
-        <th><span class="rot">Nombre</span></th>
-        <th><span class="rot">Nombre</span></th>
-        <th><span class="rot">Nombre</span></th>
+      <tr>
+        <th style="font-size:7pt">O = Oui /<br>N = Non</th>
+        <th></th>
+        <th style="font-size:7pt">Nombre</th>
+        <th style="font-size:7pt">Nombre</th>
       </tr>
     </thead>
-    <tbody>
-      <tr>
-        <td class="ext-name">Transmission GSM</td>
-        <td><input type="text" data-field="ext1_reco"></td>
-        <td><input type="text" data-field="ext1_piece"></td>
-        <td><input type="text" data-field="ext1_niv"></td>
-        <td><input type="text" data-field="ext1_pose"></td>
-        <td><input type="text" data-field="ext1_choix"></td>
-      </tr>
-      <tr>
-        <td class="ext-name">Bouton d'alerte</td>
-        <td><input type="text" data-field="ext2_reco"></td>
-        <td><input type="text" data-field="ext2_piece"></td>
-        <td><input type="text" data-field="ext2_niv"></td>
-        <td><input type="text" data-field="ext2_pose"></td>
-        <td><input type="text" data-field="ext2_choix"></td>
-      </tr>
-      <tr>
-        <td class="ext-name">Sirène extérieure</td>
-        <td><input type="text" data-field="ext3_reco"></td>
-        <td><input type="text" data-field="ext3_piece"></td>
-        <td><input type="text" data-field="ext3_niv"></td>
-        <td><input type="text" data-field="ext3_pose"></td>
-        <td><input type="text" data-field="ext3_choix"></td>
-      </tr>
-      <tr>
-        <td class="ext-name" style="color:#888">Autre, préciser</td>
-        <td><input type="text" data-field="ext4_reco"></td>
-        <td><input type="text" data-field="ext4_piece"></td>
-        <td><input type="text" data-field="ext4_niv"></td>
-        <td><input type="text" data-field="ext4_pose"></td>
-        <td><input type="text" data-field="ext4_choix"></td>
-      </tr>
-      <tr>
-        <td class="ext-name" style="color:#888">Autre, préciser</td>
-        <td><input type="text" data-field="ext5_reco"></td>
-        <td><input type="text" data-field="ext5_piece"></td>
-        <td><input type="text" data-field="ext5_niv"></td>
-        <td><input type="text" data-field="ext5_pose"></td>
-        <td><input type="text" data-field="ext5_choix"></td>
-      </tr>
-      <tr>
-        <td class="ext-name" style="color:#888">Autre, préciser</td>
-        <td><input type="text" data-field="ext6_reco"></td>
-        <td><input type="text" data-field="ext6_piece"></td>
-        <td><input type="text" data-field="ext6_niv"></td>
-        <td><input type="text" data-field="ext6_pose"></td>
-        <td><input type="text" data-field="ext6_choix"></td>
-      </tr>
-      <tr>
-        <td class="ext-name" style="color:#888">Autre, préciser</td>
-        <td><input type="text" data-field="ext7_reco"></td>
-        <td><input type="text" data-field="ext7_piece"></td>
-        <td><input type="text" data-field="ext7_niv"></td>
-        <td><input type="text" data-field="ext7_pose"></td>
-        <td><input type="text" data-field="ext7_choix"></td>
-      </tr>
-      <tr>
-        <td class="ext-name" style="color:#888">Autre, préciser</td>
-        <td><input type="text" data-field="ext8_reco"></td>
-        <td><input type="text" data-field="ext8_piece"></td>
-        <td><input type="text" data-field="ext8_niv"></td>
-        <td><input type="text" data-field="ext8_pose"></td>
-        <td><input type="text" data-field="ext8_choix"></td>
-      </tr>
-      <tr>
-        <td class="ext-name" style="color:#888">Autre, préciser</td>
-        <td><input type="text" data-field="ext9_reco"></td>
-        <td><input type="text" data-field="ext9_piece"></td>
-        <td><input type="text" data-field="ext9_niv"></td>
-        <td><input type="text" data-field="ext9_pose"></td>
-        <td><input type="text" data-field="ext9_choix"></td>
-      </tr>
-      <tr>
-        <td class="ext-name" style="color:#888">Autre, préciser</td>
-        <td><input type="text" data-field="ext10_reco"></td>
-        <td><input type="text" data-field="ext10_piece"></td>
-        <td><input type="text" data-field="ext10_niv"></td>
-        <td><input type="text" data-field="ext10_pose"></td>
-        <td><input type="text" data-field="ext10_choix"></td>
-      </tr>
-      <tr>
-        <td class="ext-name" style="color:#888">Autre, préciser</td>
-        <td><input type="text" data-field="ext11_reco"></td>
-        <td><input type="text" data-field="ext11_piece"></td>
-        <td><input type="text" data-field="ext11_niv"></td>
-        <td><input type="text" data-field="ext11_pose"></td>
-        <td><input type="text" data-field="ext11_choix"></td>
-      </tr>
-      <tr>
-        <td class="ext-name" style="color:#888">Autre, préciser</td>
-        <td><input type="text" data-field="ext12_reco"></td>
-        <td><input type="text" data-field="ext12_piece"></td>
-        <td><input type="text" data-field="ext12_niv"></td>
-        <td><input type="text" data-field="ext12_pose"></td>
-        <td><input type="text" data-field="ext12_choix"></td>
-      </tr>
-    </tbody>
+    <tbody id="tbody-ext"></tbody>
   </table>
+
+  <div class="legende">
+    *O = Oui / N = Non / L = Limite (si l'abonné ne retient pas la totalité des recommandations du technicien-conseil. Les préconisations non retenues seront listées ci-dessous)
+  </div>
+  <div style="font-size:7.5pt; font-style:italic; margin-top:2px">
+    <b>IMPORTANT :</b> le Détecteur de Fumée Télésurveillé ne remplace ou ne constitue en aucun cas un système de sécurité incendie, lorsque celui-ci est obligatoire, notamment pour certains Établissements Recevant du Public.
   </div>
 
-  <div class="ext-note">
-    *O = Oui / N = Non / L = Limité (si l'abonné ne retient pas la totalité des recommandations du technicien-conseil. Les préconisations non retenues seront listées ci-dessous)
-  </div>
-  <div class="ext-important">
-    IMPORTANT : le Détecteur de Fumée Télésurveillé ne remplace ou ne constitue en aucun cas un système de sécurité incendie, lorsque celui-ci est obligatoire, notamment pour certains Établissements Recevant du Public.
-  </div>
-
-  <!-- SERVICE LA VIDÉO -->
-  <div style="border:2px solid #000;border-top:none">
-    <div style="display:flex;align-items:stretch">
-      <div style="background:#555;color:#fff;font-weight:bold;font-size:7.5pt;padding:3px 8px;display:flex;align-items:center;white-space:nowrap;border-right:1px solid #000">
-        SERVICE LA VIDÉO
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;padding:3px 8px;font-size:7pt;flex-wrap:wrap;flex:1">
-        <span>Caméra(s) installée(s)</span>
-        <label class="cb-item"><input type="checkbox" data-field="video_oui"> Oui</label>
-        <label class="cb-item"><input type="checkbox" data-field="video_non"> Non</label>
-        <span>Nombre</span>
-        <input type="text" data-field="video_nb" style="width:30px;border-bottom:1px solid #000;text-align:center;font-size:7pt">
-      </div>
-    </div>
-    <div style="font-size:5pt;color:#555;padding:2px 8px;border-top:1px solid #ccc">
-      Connexion de 3 à 4 caméras intérieures sous réserve d'une connectivité et d'un débit internet suffisants
+  <div class="service-video">
+    <div class="lab">SERVICE LA VIDÉO</div>
+    <div class="corps">
+      <span>Caméra(s) installée(s)</span>
+      <label class="case"><input type="checkbox" data-key="cam_oui"> Oui</label>
+      <label class="case"><input type="checkbox" data-key="cam_non"> Non</label>
+      <span>Nombre</span>
+      <input class="champ champ-mini" data-key="cam_nb">
     </div>
   </div>
+  <div style="font-size:7.5pt; font-style:italic; margin-top:-2px">
+    Connexion de 3 à 4 caméras intérieures sous réserve d'une connectivité et d'un débit internet suffisants.
+  </div>
 
-  <!-- PARAMÈTRAGES -->
-  <div class="param-section" style="margin-top:5px">
-    <div class="param-title">Paramètrages</div>
-
-    <!-- Liaison -->
-    <div class="param-block">
-      <div class="param-label-main">• Model(s) de liaison utilisé(s) entre la centrale d'alarme et le centre de surveillance</div>
-      <div class="param-options">
-        <div class="param-option">
-          <label class="cb-item"><input type="checkbox" data-field="liaison_internet"> Internet (ADSL / câble / fibre)</label>
-          <span style="margin-left:10px">→ Si oui, usage</span>
-          <label class="cb-item" style="margin-left:6px"><input type="checkbox" data-field="liaison_rj45"> d'un câble RJ45</label>
-          <label class="cb-item"><input type="checkbox" data-field="liaison_cpl"> de prises CPL</label>
-        </div>
-        <div class="param-option">
-          <label class="cb-item"><input type="checkbox" data-field="liaison_gsm"> GSM (ligne dédiée)</label>
-        </div>
-      </div>
+  <div class="bandeau">Paramétrages</div>
+  <div class="bloc params">
+    <div><b>• Mode(s) de liaison utilisé(s) entre la centrale d'alarme et le centre de surveillance</b></div>
+    <div class="item">
+      <label class="case"><input type="checkbox" data-key="liaison_internet"> Internet (ADSL / câble / fibre)</label>
+      → Si oui, usage :
+      <label class="case"><input type="checkbox" data-key="liaison_rj45"> d'un câble RJ45</label>
+      <label class="case"><input type="checkbox" data-key="liaison_cpl"> de prises CPL</label>
+    </div>
+    <div class="item">
+      <label class="case"><input type="checkbox" data-key="liaison_gsm"> GSM (ligne dédiée)</label>
     </div>
 
-    <!-- Temporisations -->
-    <div class="param-block">
-      <div class="param-label-main">• Temporisations</div>
-      <div class="param-options">
-        <div class="param-option">
-          <label class="cb-item"><input type="checkbox" data-field="tempo_pas"> Pas de temporisation à l'entrée / 45 secondes à la sortie</label>
-        </div>
-        <div class="param-option" style="display:flex;align-items:center;gap:6px">
-          <label class="cb-item"><input type="checkbox" data-field="tempo_45"> 45 secondes à l'entrée / 45 secondes à la sortie</label>
-          <span style="margin-left:6px;font-size:6pt">} Recommandé</span>
-        </div>
-        <div class="param-option" style="align-items:center;gap:4px">
-          <label class="cb-item"><input type="checkbox" data-field="tempo_autre"> Autre (à la demande de l'abonné)</label>
-          <input type="text" data-field="tempo_entree_sec" style="width:25px;border:1px solid #000;text-align:center;font-size:6pt">
-          <span style="font-size:6pt">secondes à l'entrée /</span>
-          <input type="text" data-field="tempo_sortie_sec" style="width:25px;border:1px solid #000;text-align:center;font-size:6pt">
-          <span style="font-size:6pt">secondes à la sortie</span>
-        </div>
-      </div>
+    <div style="margin-top:4px"><b>• Temporisations</b></div>
+    <div class="item">
+      <label class="case"><input type="checkbox" data-key="tempo_0_45"> Pas de temporisation à l'entrée / 45 secondes à la sortie</label>
+    </div>
+    <div class="item">
+      <label class="case"><input type="checkbox" data-key="tempo_45_45"> 45 secondes à l'entrée / 45 secondes à la sortie</label>
+      &nbsp;<i>Recommandé</i>
+    </div>
+    <div class="item">
+      <label class="case"><input type="checkbox" data-key="tempo_autre"> Autre (à la demande de l'abonné</label>
+      <input class="champ champ-mini" data-key="tempo_e">
+      secondes à l'entrée /
+      <input class="champ champ-mini" data-key="tempo_s">
+      secondes à la sortie)
     </div>
 
-    <!-- Bouton d'alerte -->
-    <div class="param-block" style="margin-bottom:0">
-      <div class="param-label-main">• Bouton d'alerte</div>
-      <div class="param-options">
-        <div class="param-option">
-          <label class="cb-item"><input type="checkbox" data-field="bouton_actif"> bouton activé par défaut</label>
-          <label class="cb-item" style="margin-left:8px"><input type="checkbox" data-field="bouton_silencieux"> Mode silencieux activé à la demande expresse de l'abonné</label>
-        </div>
-      </div>
+    <div style="margin-top:4px"><b>• Bouton d'alerte</b> &nbsp;<i>(mode sirène activé par défaut)</i>
+      &nbsp;&nbsp;<label class="case"><input type="checkbox" data-key="bouton_silence"> Mode silencieux activé à la demande expresse de l'abonné</label>
     </div>
   </div>
 
-  <!-- RECOMMANDATIONS NON RETENUES -->
-  <div class="non-retenues">
-    <div class="nrline">
-      <label>Recommandations non retenues par l'abonné :</label>
-      <input type="text" data-field="non_retenues" placeholder="Ex : Sirène extérieure, ...">
+  <div style="margin-top:6px"><b>Recommandations non retenues par l'abonné :</b></div>
+  <textarea class="zone" rows="2" data-key="reco_non_retenues"></textarea>
+
+  <div style="margin-top:6px"><b>Remarques :</b></div>
+  <textarea class="zone" rows="4" data-key="remarques"></textarea>
+
+  <div style="margin-top:8px; font-size:9pt">
+    Je soussigné(e) (nom de l'abonné ou son représentant)
+    <input class="champ" data-key="soussigne" style="max-width:260px"> certifie
+    l'exactitude des informations figurant ci-dessus et certifie avoir pris connaissance de la totalité des informations figurant dans ce document.
+  </div>
+
+  <div class="sig-row">
+    <div style="flex:2">
+      <div><b>Nom et signature du technicien-conseil :</b></div>
+      <input class="champ" data-key="tech_nom">
+      <div class="sig-box"></div>
+    </div>
+    <div style="flex:1">
+      <div><b>Date</b></div>
+      <input class="champ" data-key="date">
+    </div>
+    <div style="flex:2">
+      <div><b>Cachet et signature de l'abonné :</b></div>
+      <div class="sig-box"></div>
     </div>
   </div>
 
-  <!-- REMARQUES -->
-  <div class="remarques-block">
-    <div class="remarques-label">Remarques :</div>
-    <textarea data-field="remarques" placeholder="Saisir les remarques ici..."></textarea>
+  <div class="footer-page" style="margin-top:6px">
+    <div></div>
+    <div>EXEMPLAIRE EPS / FEUILLET N° <b>2 / 2</b></div>
+    <div></div>
   </div>
-
-  <!-- CERTIF + SIGNATURES -->
-  <div class="certif-block">
-    <div class="certif-line" style="font-size:7pt;margin-bottom:3px">
-      Je soussigné(e) (nom de l'abonné ou de son représentant)
-      <input type="text" data-field="certif_nom" style="max-width:120px" placeholder="Nom">
-      certifie l'exactitude des informations figurant ci-dessus et certifie avoir pris connaissance de la totalité des informations figurant dans ce document
-    </div>
-    <div class="certif-line">
-      <span style="font-size:7pt">Nom et signature du technicien-conseil :</span>
-      <input type="text" data-field="tech_nom" style="max-width:100px" placeholder="Nom du technicien">
-      <span style="font-size:7pt;margin-left:10px">Date</span>
-      <input type="text" data-field="date_sign" style="max-width:80px" placeholder="jj/mm/aaaa">
-      <span style="font-size:7pt;margin-left:10px">et signature de l'abonné</span>
-    </div>
-    <div class="sig-row">
-      <div class="sig-item">
-        <div class="sig-label">Signature technicien-conseil :</div>
-        <div class="sig-box"></div>
-      </div>
-      <div class="sig-item">
-        <div class="sig-label">Signature de l'abonné :</div>
-        <div class="sig-box"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- FEUILLET -->
-  <div class="feuillet-row">
-    <span>EXEMPLAIRE EPS / FEUILLET N°</span>
-    <input type="text" class="feuillet-input" data-field="feuillet_p2" style="width:25px;border-bottom:1px solid #000;text-align:center">
-    <span>/</span>
-    <input type="text" class="feuillet-input" data-field="feuillet_total_p2" style="width:25px;border-bottom:1px solid #000;text-align:center">
-  </div>
-
-</div><!-- /page2 -->
-
-</div><!-- /pages-container -->
-
-<script src="app.js"></script>
+</section>
 
 <script>
-// Sync digit boxes page1 -> page2 automatically
-document.addEventListener('input', e => {
-  const f = e.target.dataset.field;
-  if (!f) return;
-  // Sync lieu protege digits
-  if (f && f.startsWith('lieu_d')) {
-    const n = f.replace('lieu_d', '');
-    const twin = document.querySelector('[data-field="lieu2_d' + n + '"]');
-    if (twin && twin !== e.target) twin.value = e.target.value;
+/* ====================================================================== */
+/* Construction des cases du N° de lieu protégé (10 cases)                 */
+/* ====================================================================== */
+function buildCases(containerId, prefix) {
+  const c = document.getElementById(containerId);
+  for (let i = 0; i < 10; i++) {
+    const inp = document.createElement('input');
+    inp.className = 'case-chiffre';
+    inp.maxLength = 1;
+    inp.dataset.key = prefix + '_' + i;
+    c.appendChild(inp);
   }
-  if (f && f.startsWith('lieu2_d')) {
-    const n = f.replace('lieu2_d', '');
-    const twin = document.querySelector('[data-field="lieu_d' + n + '"]');
-    if (twin && twin !== e.target) twin.value = e.target.value;
-  }
-  // Auto-advance digit boxes
-  if (e.target.classList.contains('digit-box') && e.target.value.length === 1) {
-    const boxes = [...document.querySelectorAll('.digit-box')];
-    const allBoxes = boxes;
-    const idx = allBoxes.indexOf(e.target);
-    // find next digit-box in same group
-    const parent = e.target.closest('.digit-group');
-    if (parent) {
-      const groupBoxes = [...parent.querySelectorAll('.digit-box')];
-      const gi = groupBoxes.indexOf(e.target);
-      if (gi < groupBoxes.length - 1) groupBoxes[gi + 1].focus();
+}
+buildCases('cases-num', 'lieu_n');
+buildCases('cases-num-2', 'lieu_n');  // même clé : valeurs synchronisées
+
+/* ====================================================================== */
+/* Liste des pièces page 1 (configurable)                                  */
+/* ====================================================================== */
+const PIECES_DEFAUT = [
+  'Entrée', 'Restaurant', 'Espace', 'Comptoir caisse',
+  'Espace plage', 'Cuisine', 'Réserve', 'Local Bar',
+  'Entrée Annexe', 'Sanitaire', 'Local chauffe-eau', 'Bureau',
+  '', '', ''
+];
+
+const COLS_INTRUSION = 13;  /* 7 constat + 6 reco */
+
+function buildIntrusionRows() {
+  const tbody = document.getElementById('tbody-intrusion');
+  PIECES_DEFAUT.forEach((nom, idx) => {
+    const tr = document.createElement('tr');
+    /* nom de la pièce */
+    const tdNom = document.createElement('td');
+    tdNom.className = 'piece';
+    const inpNom = document.createElement('input');
+    inpNom.value = nom;
+    inpNom.dataset.key = 'piece_' + idx + '_nom';
+    tdNom.appendChild(inpNom);
+    tr.appendChild(tdNom);
+    /* 13 cellules + 1 choix abonné */
+    for (let c = 0; c < COLS_INTRUSION; c++) {
+      const td = document.createElement('td');
+      td.className = 'cellule';
+      const inp = document.createElement('input');
+      inp.className = 'cell';
+      inp.dataset.key = 'piece_' + idx + '_c' + c;
+      td.appendChild(inp);
+      tr.appendChild(td);
     }
+    /* Choix abonné */
+    const tdChoix = document.createElement('td');
+    tdChoix.className = 'cellule';
+    const inpChoix = document.createElement('input');
+    inpChoix.className = 'cell';
+    inpChoix.dataset.key = 'piece_' + idx + '_choix';
+    tdChoix.appendChild(inpChoix);
+    tr.appendChild(tdChoix);
+
+    tbody.appendChild(tr);
+  });
+}
+buildIntrusionRows();
+
+/* ====================================================================== */
+/* Liste des extensions page 2                                             */
+/* ====================================================================== */
+const EXTENSIONS_DEFAUT = [
+  'Transmission GSM',
+  'Bouton d\'alerte',
+  'Sirène extérieure',
+  'Autre, préciser', 'Autre, préciser', 'Autre, préciser',
+  'Autre, préciser', 'Autre, préciser', 'Autre, préciser',
+  'Autre, préciser', 'Autre, préciser', 'Autre, préciser', 'Autre, préciser'
+];
+
+function buildExtRows() {
+  const tbody = document.getElementById('tbody-ext');
+  EXTENSIONS_DEFAUT.forEach((nom, idx) => {
+    const tr = document.createElement('tr');
+    const tdNom = document.createElement('td');
+    tdNom.className = 'lab';
+    const inpNom = document.createElement('input');
+    inpNom.className = 'lab-input';
+    inpNom.value = nom;
+    inpNom.dataset.key = 'ext_' + idx + '_nom';
+    tdNom.appendChild(inpNom);
+    tr.appendChild(tdNom);
+    /* 4 colonnes : reco, pièce, niveau, pose */
+    for (let c = 0; c < 4; c++) {
+      const td = document.createElement('td');
+      const inp = document.createElement('input');
+      inp.className = 'cell';
+      inp.dataset.key = 'ext_' + idx + '_c' + c;
+      td.appendChild(inp);
+      tr.appendChild(td);
+    }
+    const tdChoix = document.createElement('td');
+    const inpChoix = document.createElement('input');
+    inpChoix.className = 'cell';
+    inpChoix.dataset.key = 'ext_' + idx + '_choix';
+    tdChoix.appendChild(inpChoix);
+    tr.appendChild(tdChoix);
+
+    tbody.appendChild(tr);
+  });
+}
+buildExtRows();
+
+/* ====================================================================== */
+/* Sauvegarde / restauration localStorage                                  */
+/*   → garantit que les annotations manuelles ne disparaissent JAMAIS      */
+/* ====================================================================== */
+const STORAGE_KEY = 'diagnostic_securite_v1';
+
+function getAllFields() {
+  return document.querySelectorAll('[data-key]');
+}
+
+function saveAll() {
+  const data = {};
+  getAllFields().forEach(el => {
+    const k = el.dataset.key;
+    if (el.type === 'checkbox') {
+      data[k] = el.checked;
+    } else {
+      data[k] = el.value;
+    }
+  });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+}
+
+function loadAll() {
+  let data;
+  try { data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch(e) { data = {}; }
+  getAllFields().forEach(el => {
+    const k = el.dataset.key;
+    if (k in data) {
+      if (el.type === 'checkbox') el.checked = !!data[k];
+      else el.value = data[k];
+    }
+  });
+}
+
+/* sync auto à chaque saisie */
+document.addEventListener('input', e => {
+  if (e.target.dataset && e.target.dataset.key) saveAll();
+});
+document.addEventListener('change', e => {
+  if (e.target.dataset && e.target.dataset.key) saveAll();
+});
+
+/* synchroniser les 2 lignes de cases lieu N° entre page 1 et page 2 */
+document.addEventListener('input', e => {
+  if (e.target.dataset && e.target.dataset.key && e.target.dataset.key.startsWith('lieu_n_')) {
+    const k = e.target.dataset.key;
+    document.querySelectorAll('[data-key="' + k + '"]').forEach(inp => {
+      if (inp !== e.target) inp.value = e.target.value;
+    });
   }
 });
+
+/* charger au démarrage */
+loadAll();
+
+/* ====================================================================== */
+/* Export / Import JSON                                                    */
+/* ====================================================================== */
+function exportJSON() {
+  saveAll();
+  const data = localStorage.getItem(STORAGE_KEY) || '{}';
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const d = new Date().toISOString().slice(0,10);
+  a.download = `diagnostic-securite-${d}.json`;
+  a.click();
+}
+
+function importJSON(evt) {
+  const f = evt.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, r.result);
+      loadAll();
+    } catch(e) { alert('Fichier invalide'); }
+  };
+  r.readAsText(f);
+}
+
+/* ====================================================================== */
+/* Réinitialisation                                                        */
+/* ====================================================================== */
+function resetForm() {
+  if (!confirm('Réinitialiser toute la fiche ? Les saisies seront perdues.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  getAllFields().forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else el.value = '';
+  });
+  /* restaure les noms par défaut des pièces et extensions */
+  PIECES_DEFAUT.forEach((nom, idx) => {
+    const inp = document.querySelector(`[data-key="piece_${idx}_nom"]`);
+    if (inp) inp.value = nom;
+  });
+  EXTENSIONS_DEFAUT.forEach((nom, idx) => {
+    const inp = document.querySelector(`[data-key="ext_${idx}_nom"]`);
+    if (inp) inp.value = nom;
+  });
+  saveAll();
+}
 </script>
 
 </body>
